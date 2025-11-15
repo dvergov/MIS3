@@ -2,7 +2,7 @@ class Meal {
   final String id;
   final String name;
   final String imageUrl;
-  final String? category; // Add this field
+  final String? category;
 
   Meal({
     required this.id,
@@ -16,7 +16,7 @@ class Meal {
       id: json['idMeal'],
       name: json['strMeal'],
       imageUrl: json['strMealThumb'],
-      category: json['strCategory'], // Map this field
+      category: json['strCategory'],
     );
   }
 }

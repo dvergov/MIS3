@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../services/meal_service.dart';
 import '../widgets/category_card.dart';
-import '../widgets/search_bar.dart' as custom; // Use alias to avoid conflict
+import '../widgets/search_bar.dart' as custom;
 import 'meals_screen.dart';
-import 'recipe_detail_screen.dart'; // Add this import
+import 'recipe_detail_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   @override
@@ -93,7 +93,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ? Center(child: CircularProgressIndicator())
           : Column(
         children: [
-          custom.SearchBar( // Use the alias
+          custom.SearchBar(
             onSearch: _searchCategories,
             hintText: 'Search categories...',
           ),

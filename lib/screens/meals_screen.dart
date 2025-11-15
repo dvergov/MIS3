@@ -54,7 +54,6 @@ class _MealsScreenState extends State<MealsScreen> {
         results = await MealService.getMealsByCategory(widget.category);
       } else {
         results = await MealService.searchMeals(query);
-        // Filter results by current category if category info is available
         results = results.where((meal) => meal.category == widget.category).toList();
       }
 
@@ -87,7 +86,7 @@ class _MealsScreenState extends State<MealsScreen> {
       ),
       body: Column(
         children: [
-          custom.SearchBar( // Use the alias
+          custom.SearchBar(
             onSearch: _searchMeals,
             hintText: 'Search meals...',
           ),

@@ -76,7 +76,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Recipe Image
             Image.network(
               _recipe!.imageUrl,
               height: 250,
@@ -95,7 +94,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Recipe Name
                   Text(
                     _recipe!.name,
                     style: TextStyle(
@@ -105,7 +103,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   ),
                   SizedBox(height: 16),
 
-                  // YouTube Link
                   if (_recipe!.youtubeUrl != null && _recipe!.youtubeUrl!.isNotEmpty)
                     Column(
                       children: [
@@ -118,7 +115,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ],
                     ),
 
-                  // Ingredients
                   Text(
                     'Ingredients:',
                     style: TextStyle(
@@ -136,7 +132,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   )),
                   SizedBox(height: 16),
 
-                  // Instructions
                   Text(
                     'Instructions:',
                     style: TextStyle(

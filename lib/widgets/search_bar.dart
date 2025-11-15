@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // Add this import for Timer
+import 'dart:async';
 
 class SearchBar extends StatefulWidget {
   final ValueChanged<String> onSearch;
