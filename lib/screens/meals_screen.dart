@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/meal.dart';
 import '../services/meal_service.dart';
+import '../services/favorites_service.dart';
 import '../widgets/meal_card.dart';
-import '../widgets/search_bar.dart' as custom; // Use alias
+import '../widgets/search_bar.dart' as custom;
 import 'recipe_detail_screen.dart';
 
 class MealsScreen extends StatefulWidget {
@@ -29,6 +30,15 @@ class _MealsScreenState extends State<MealsScreen> {
   Future<void> _loadMeals() async {
     try {
       final meals = await MealService.getMealsByCategory(widget.category);
+
+      for (var meal in meals) {
+        final isFavorite = await FavoritesService.isFavorite(meal.id);
+        if (isFavorite != meal.isFavorite) {
+          final index = meals.indexOf(meal);
+          meals[index] = meal.copyWith(isFavorite: isFavorite);
+        }
+      }
+
       setState(() {
         _meals = meals;
         _filteredMeals = meals;
@@ -51,10 +61,16 @@ class _MealsScreenState extends State<MealsScreen> {
     try {
       List<Meal> results;
       if (query.isEmpty) {
-        results = await MealService.getMealsByCategory(widget.category);
+        results = _meals;
       } else {
         results = await MealService.searchMeals(query);
         results = results.where((meal) => meal.category == widget.category).toList();
+
+        for (var meal in results) {
+          final isFavorite = await FavoritesService.isFavorite(meal.id);
+          final index = results.indexOf(meal);
+          results[index] = meal.copyWith(isFavorite: isFavorite);
+        }
       }
 
       setState(() {
@@ -67,6 +83,21 @@ class _MealsScreenState extends State<MealsScreen> {
       });
       _showErrorSnackBar('Failed to search meals');
     }
+  }
+
+  void _toggleFavorite(String mealId, bool isFavorite) async {
+    if (isFavorite) {
+      await FavoritesService.addToFavorites(mealId);
+    } else {
+      await FavoritesService.removeFromFavorites(mealId);
+    }
+
+    setState(() {
+      final index = _filteredMeals.indexWhere((m) => m.id == mealId);
+      if (index != -1) {
+        _filteredMeals[index] = _filteredMeals[index].copyWith(isFavorite: isFavorite);
+      }
+    });
   }
 
   void _showErrorSnackBar(String message) {
@@ -119,9 +150,17 @@ class _MealsScreenState extends State<MealsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RecipeDetailScreen(mealId: meal.id),
+                        builder: (context) => RecipeDetailScreen(
+                          mealId: meal.id,
+                          onFavoriteToggle: (isFavorite) {
+                            _toggleFavorite(meal.id, isFavorite);
+                          },
+                        ),
                       ),
                     );
+                  },
+                  onFavoriteToggle: (isFavorite) {
+                    _toggleFavorite(meal.id, isFavorite);
                   },
                 );
               },

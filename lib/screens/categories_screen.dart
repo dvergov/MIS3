@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../services/meal_service.dart';
+import '../services/favorites_service.dart';
 import '../widgets/category_card.dart';
 import '../widgets/search_bar.dart' as custom;
 import 'meals_screen.dart';
 import 'recipe_detail_screen.dart';
+import 'favorites_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   @override
@@ -68,7 +70,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => RecipeDetailScreen(recipe: randomRecipe),
+          builder: (context) => RecipeDetailScreen(
+            recipe: randomRecipe,
+            onFavoriteToggle: (isFavorite) {
+              if (isFavorite) {
+                FavoritesService.addToFavorites(randomRecipe.id);
+              } else {
+                FavoritesService.removeFromFavorites(randomRecipe.id);
+              }
+            },
+          ),
         ),
       );
     } catch (e) {
@@ -82,6 +93,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       appBar: AppBar(
         title: Text('Recipe Categories'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FavoritesScreen(),
+                ),
+              );
+            },
+            tooltip: 'Favorite Recipes',
+          ),
           IconButton(
             icon: Icon(Icons.shuffle),
             onPressed: _navigateToRandomRecipe,

@@ -34,5 +34,24 @@
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAAVCGKIxgE8MRpILxzp4FRJb7qHkjFoWQ",
+      authDomain: "recipeapp-e4dc2.firebaseapp.com",
+      projectId: "recipeapp-e4dc2",
+      storageBucket: "recipeapp-e4dc2.firebasestorage.app",
+      messagingSenderId: "141743807878",
+      appId: "1:141743807878:web:99d0338d002ec1fdb72007"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+  </script>
 </body>
 </html>

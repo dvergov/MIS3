@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http; // This should work after running flutter pub get
+import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../models/meal.dart';
 import '../models/recipe.dart';

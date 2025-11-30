@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher_string.dart'; // Use url_launcher_string instead
+import 'package:url_launcher/url_launcher_string.dart';
 import '../models/recipe.dart';
 import '../services/meal_service.dart';
+import '../services/favorites_service.dart';
+import '../services/analytics_service.dart';
+import '../widgets/favorite_button.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final String? mealId;
   final Recipe? recipe;
+  final Function(bool)? onFavoriteToggle;
 
-  const RecipeDetailScreen({Key? key, this.mealId, this.recipe}) : super(key: key);
+  const RecipeDetailScreen({
+    Key? key,
+    this.mealId,
+    this.recipe,
+    this.onFavoriteToggle,
+  }) : super(key: key);
 
   @override
   _RecipeDetailScreenState createState() => _RecipeDetailScreenState();
@@ -16,6 +25,7 @@ class RecipeDetailScreen extends StatefulWidget {
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Recipe? _recipe;
   bool _isLoading = true;
+  bool _hasLoggedView = false;
 
   @override
   void initState() {
@@ -23,6 +33,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     if (widget.recipe != null) {
       _recipe = widget.recipe;
       _isLoading = false;
+      _logRecipeView();
     } else {
       _loadRecipe();
     }
@@ -33,16 +44,45 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     try {
       final recipe = await MealService.getRecipeById(widget.mealId!);
+      final isFavorite = await FavoritesService.isFavorite(recipe.id);
       setState(() {
-        _recipe = recipe;
+        _recipe = recipe.copyWith(isFavorite: isFavorite);
         _isLoading = false;
       });
+      _logRecipeView();
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
       _showErrorSnackBar('Failed to load recipe');
     }
+  }
+
+  void _logRecipeView() {
+    if (_recipe != null && !_hasLoggedView) {
+      AnalyticsService.logRecipeView(_recipe!.id, _recipe!.name);
+      _hasLoggedView = true;
+      print('📊 Analytics: Logged view for ${_recipe!.name}');
+    }
+  }
+
+  void _toggleFavorite(bool isFavorite) async {
+    if (_recipe == null) return;
+
+    AnalyticsService.logFavoriteAction(_recipe!.id, isFavorite);
+    print('📊 Analytics: Logged ${isFavorite ? 'favorite' : 'unfavorite'} for ${_recipe!.name}');
+
+    if (isFavorite) {
+      await FavoritesService.addToFavorites(_recipe!.id);
+    } else {
+      await FavoritesService.removeFromFavorites(_recipe!.id);
+    }
+
+    setState(() {
+      _recipe = _recipe!.copyWith(isFavorite: isFavorite);
+    });
+
+    widget.onFavoriteToggle?.call(isFavorite);
   }
 
   void _showErrorSnackBar(String message) {
@@ -55,10 +95,34 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Future<void> _launchYoutubeVideo(String url) async {
+    if (_recipe != null) {
+      AnalyticsService.logEvent(
+        name: 'youtube_click',
+        parameters: {
+          'recipe_id': _recipe!.id,
+          'recipe_name': _recipe!.name,
+        },
+      );
+      print('📊 Analytics: Logged YouTube click for ${_recipe!.name}');
+    }
+
     if (await canLaunchUrlString(url)) {
       await launchUrlString(url);
     } else {
       _showErrorSnackBar('Could not launch YouTube');
+    }
+  }
+
+  void _logInstructionsRead() {
+    if (_recipe != null) {
+      AnalyticsService.logEvent(
+        name: 'instructions_read',
+        parameters: {
+          'recipe_id': _recipe!.id,
+          'recipe_name': _recipe!.name,
+        },
+      );
+      print('📊 Analytics: Logged instructions read for ${_recipe!.name}');
     }
   }
 
@@ -67,6 +131,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_recipe?.name ?? 'Recipe Details'),
+        actions: [
+          if (_recipe != null)
+            FavoriteButton(
+              isFavorite: _recipe!.isFavorite,
+              onPressed: _toggleFavorite,
+            ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -140,9 +211,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  Text(
-                    _recipe!.instructions,
-                    style: TextStyle(fontSize: 16, height: 1.5),
+                  NotificationListener<ScrollNotification>(
+                    onNotification: (scrollNotification) {
+                      if (scrollNotification is ScrollEndNotification) {
+                        final metrics = scrollNotification.metrics;
+                        if (metrics.pixels >= metrics.maxScrollExtent * 0.8) {
+                          _logInstructionsRead();
+                        }
+                      }
+                      return false;
+                    },
+                    child: Text(
+                      _recipe!.instructions,
+                      style: TextStyle(fontSize: 16, height: 1.5),
+                    ),
                   ),
                 ],
               ),

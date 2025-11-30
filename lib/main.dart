@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'screens/categories_screen.dart';
+import 'services/firebase_service.dart';
+import 'services/notification_service.dart';
+import 'services/auth_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await FirebaseService.initialize();
+
+  await AuthService.signInAnonymously();
+  print('Anonymous user signed in: ${AuthService.currentUser?.uid}');
+
+  await NotificationService.scheduleDailyRecipeNotification();
+
   runApp(MyApp());
 }
 

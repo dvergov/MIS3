@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/meal.dart';
+import 'favorite_button.dart';
 
 class MealCard extends StatelessWidget {
   final Meal meal;
   final VoidCallback onTap;
+  final Function(bool) onFavoriteToggle;
 
   const MealCard({
     Key? key,
     required this.meal,
     required this.onTap,
+    required this.onFavoriteToggle,
   }) : super(key: key);
 
   @override
@@ -19,19 +22,30 @@ class MealCard extends StatelessWidget {
         onTap: onTap,
         child: Column(
           children: [
-            Expanded(
-              flex: 3,
-              child: Image.network(
-                meal.imageUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: Icon(Icons.fastfood, size: 40, color: Colors.grey),
-                  );
-                },
-              ),
+            Stack(
+              children: [
+                Image.network(
+                  meal.imageUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 120,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 120,
+                      color: Colors.grey[200],
+                      child: Icon(Icons.fastfood, size: 40, color: Colors.grey),
+                    );
+                  },
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: FavoriteButton(
+                    isFavorite: meal.isFavorite,
+                    onPressed: onFavoriteToggle,
+                  ),
+                ),
+              ],
             ),
             Padding(
               padding: EdgeInsets.all(8),
